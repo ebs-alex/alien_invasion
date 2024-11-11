@@ -9,11 +9,15 @@ class Settings:
         self.bg_color = (0,0,0)
 
         # Ship Settings
-        self.ship_speed = 1.2
+        self.ship_speed = 2.0
 
         # bullet settings
-        self.bullet_speed = 1.0
+        self.bullet_speed = 6.0
         self.bullet_width = 3
-        self.bullet_height = 15
+        self.bullet_height = 25
         self.bullet_color = (8,96,168)
-        self.bullets_allowed = 5
+        self.bullets_allowed = 2
+
+        #star settings
+        self.star_color = (230,230,230)
+        self.number_stars = 40

@@ -2,10 +2,12 @@ import sys
 
 import pygame # type: ignore
 
+from random import randint
 from settings import Settings # type: ignore
 from ship import Ship # type: ignore
 from bullet import Bullet # type: ignore
 from alien import Alien # type: ignore
+from star import Star # type: ignore
 
 class AlienInvasion:
     """Overall Class to manage game assets and resources"""
@@ -23,11 +25,14 @@ class AlienInvasion:
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
+        self.stars = pygame.sprite.Group()
 
         self._create_fleet()
+        
 
         # set the background color
         self.bg_color = (self.settings.bg_color)
+        self.counter = 0
 
     def run_game(self):
         """Start main game loop"""
@@ -103,7 +108,6 @@ class AlienInvasion:
             for alien_number in range(number_aliens_x):
                 self._create_alien(alien_number, row_number)
 
-
     def _create_alien(self, alien_number, row_number):
         '''create an alien and place it in the row'''
         alien = Alien(self)
@@ -112,7 +116,29 @@ class AlienInvasion:
         alien.rect.x = alien.x
         alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number
         self.aliens.add(alien)
+
+    def _create_stars(self):
+          for star in range(self.settings.number_stars):
+            new_star = Star(self)
+            self.stars.add(new_star)
+
+    def _destroy_stars(self):
+        for star in self.stars.copy():
+            self.stars.remove(star)         
          
+    def _render_stars(self):
+        if self.counter == 1:
+            self._create_stars()
+        elif self.counter <= 39:
+            for star in self.stars.sprites():
+                star.draw_star()    
+        elif self.counter == 40:
+            self._destroy_stars()
+            self.counter = 0
+
+        self.counter += 1
+          
+                 
     def _update_screen(self):
             # redraw the screen during each pass through the loop
             self.screen.fill(self.bg_color)
@@ -120,6 +146,8 @@ class AlienInvasion:
             for bullet in self.bullets.sprites():
                  bullet.draw_bullet()
             self.aliens.draw(self.screen)
+            self._render_stars()
+            
             # Make most recently drawn screen visible
             pygame.display.flip()
 
