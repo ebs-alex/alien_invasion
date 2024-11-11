@@ -10,6 +10,7 @@ from bullet import Bullet # type: ignore
 from alien import Alien # type: ignore
 from star import Star # type: ignore
 from game_stats import GameStats # type: ignore
+from button import Button
 
 
 class AlienInvasion:
@@ -30,6 +31,7 @@ class AlienInvasion:
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
+        self.play_button = Button(self, "Play")
 
         self._create_fleet()
         
@@ -41,14 +43,14 @@ class AlienInvasion:
     def run_game(self):
         """Start main game loop"""
         while True:
+            self._check_events()
+            self._update_screen()
             if self.stats.game_active:
-                self._check_events()
-                self.ship.update()
                 self._update_bullets()
+                self.ship.update()
                 self._update_aliens()
-                self._update_screen()
-            else:
-                 self.game_over()
+            # else:
+                #  self.game_over()
              
 
 
@@ -62,6 +64,9 @@ class AlienInvasion:
                      
                 elif event.type == pygame.KEYUP:
                     self._check_keyup_events(event)
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                     mouse_pos = pygame.mouse.get_pos()
+                     self._check_play_button(mouse_pos)
 
     def _check_keydown_events(self, event):
         """respond to =key releases"""
@@ -197,19 +202,36 @@ class AlienInvasion:
             sleep(0.5)
          else:
             self.stats.game_active = False    
+            pygame.mouse.set_visible(True)
 
+    def _check_play_button(self, mouse_pos):
+         button_clicked = self.play_button.rect.collidepoint(mouse_pos)
+         if button_clicked and not self.stats.game_active:            
+            self.reset_game()
+            self.stats.game_active = True
+            pygame.mouse.set_visible(False)
+            
+    def reset_game(self):
+        self.stats.reset_stats()
+        self.aliens.empty()
+        self.bullets.empty()
+        self._create_fleet()
+        self.ship.center_ship()
                  
     def _update_screen(self):
-            # redraw the screen during each pass through the loop
-            self.screen.fill(self.bg_color)
-            self.ship.blitme()
-            for bullet in self.bullets.sprites():
-                 bullet.draw_bullet()
-            self.aliens.draw(self.screen)
-            self._render_stars()
-            
-            # Make most recently drawn screen visible
-            pygame.display.flip()
+        # redraw the screen during each pass through the loop
+        self.screen.fill(self.bg_color)
+        self.ship.blitme()
+        for bullet in self.bullets.sprites():
+                bullet.draw_bullet()
+        self.aliens.draw(self.screen)
+        self._render_stars()
+
+        if not self.stats.game_active:
+             self.play_button.draw_button()
+        
+        # Make most recently drawn screen visible
+        pygame.display.flip()
 
     def game_over(self):
          sys.exit()
