@@ -10,7 +10,9 @@ from bullet import Bullet # type: ignore
 from alien import Alien # type: ignore
 from star import Star # type: ignore
 from game_stats import GameStats # type: ignore
-from button import Button
+from button import Button # type: ignore
+from scoreboard import Scoreboard # type: ignore
+
 
 
 class AlienInvasion:
@@ -32,6 +34,7 @@ class AlienInvasion:
         self.aliens = pygame.sprite.Group()
         self.stars = pygame.sprite.Group()
         self.play_button = Button(self, "Play")
+        self.sb = Scoreboard(self)
 
         self._create_fleet()
         
@@ -105,9 +108,16 @@ class AlienInvasion:
     
     def _check_bullet_alien_collisions(self):
         collisions = pygame.sprite.groupcollide(self.bullets, self.aliens, True, True)
+        if collisions:
+             for aliens in collisions.values():
+                  self.stats.score += self.settings.alien_points * len(aliens)
+             self.sb.prep_score()
+             self.sb.check_high_score()
         if not self.aliens:
              self.bullets.empty()
              self._create_fleet()
+             self.settings.increase_speed()
+             self.stats.level += 1
          
     
     def _create_fleet(self):
@@ -193,6 +203,7 @@ class AlienInvasion:
          #decrement ships left
          if self.stats.ships_left > 0:
             self.stats.ships_left -= 1
+            self.sb.prep_ships()
             #reset aliens and bullets
             self.aliens.empty()
             self.bullets.empty()
@@ -217,6 +228,8 @@ class AlienInvasion:
         self.bullets.empty()
         self._create_fleet()
         self.ship.center_ship()
+        self.settings.initialize_dynamic_settings()
+        self.sb.prep_ships()
                  
     def _update_screen(self):
         # redraw the screen during each pass through the loop
@@ -226,6 +239,9 @@ class AlienInvasion:
                 bullet.draw_bullet()
         self.aliens.draw(self.screen)
         self._render_stars()
+        self.sb.prep_score()
+        self.sb.show_score()
+        
 
         if not self.stats.game_active:
              self.play_button.draw_button()
